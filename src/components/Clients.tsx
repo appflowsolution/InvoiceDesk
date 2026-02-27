@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, Download, Edit2, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, Plus, Filter, Download, Edit2, Trash2, ChevronLeft, ChevronRight, X, Users } from 'lucide-react';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
@@ -160,7 +160,10 @@ const Clients: React.FC = () => {
                 {/* Header Section */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Clients</h1>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                            <Users className="w-8 h-8 text-blue-600" />
+                            Clients
+                        </h1>
                         <p className="text-slate-500 text-base">
                             Central directory of all your customer relationships and billing history.
                         </p>

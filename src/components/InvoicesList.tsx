@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, Download, Trash2, Edit2, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Search, Plus, Filter, Download, Trash2, Edit2, ChevronLeft, ChevronRight, Eye, FileText, CheckCircle2, Clock, X } from 'lucide-react';
 import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Link } from 'react-router-dom';
@@ -12,13 +12,29 @@ interface Invoice {
     issueDate: string;
     dueDate: string;
     amountDue: number;
+    amountPaid?: number;
+    paymentStatus?: 'Paid' | 'Pending' | 'Partial';
     status: 'Paid' | 'Pending' | 'Overdue' | 'Draft';
     createdAt: string;
 }
 
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    }).format(amount);
+};
+
 const InvoicesList: React.FC = () => {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Filter States
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [clientFilter, setClientFilter] = useState('All');
+    const [dateFilter, setDateFilter] = useState(''); // YYYY-MM
+    const [showFilters, setShowFilters] = useState(false);
 
     // Delete Modal State
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -26,7 +42,31 @@ const InvoicesList: React.FC = () => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const itemsPerPage = 7;
-    const sortedInvoices = [...invoices].sort((a, b) => {
+
+    // Advanced Filtering Logic
+    const filteredInvoices = invoices.filter(invoice => {
+        // Search Term Filter
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = !searchTerm ||
+            invoice.invoiceId.toLowerCase().includes(searchLower) ||
+            invoice.clientDetail.toLowerCase().includes(searchLower) ||
+            invoice.projectName.toLowerCase().includes(searchLower) ||
+            (invoice.amountDue || 0).toString().includes(searchTerm);
+
+        // Status Filter
+        const currentStatus = invoice.paymentStatus || invoice.status;
+        const matchesStatus = statusFilter === 'All' || currentStatus === statusFilter;
+
+        // Client Filter
+        const matchesClient = clientFilter === 'All' || invoice.clientDetail === clientFilter;
+
+        // Date Filter (Matching YYYY-MM)
+        const matchesDate = !dateFilter || invoice.issueDate.startsWith(dateFilter);
+
+        return matchesSearch && matchesStatus && matchesClient && matchesDate;
+    });
+
+    const sortedInvoices = [...filteredInvoices].sort((a, b) => {
         // Sort by issue date descending (newest first)
         return new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime();
     });
@@ -34,6 +74,22 @@ const InvoicesList: React.FC = () => {
     const totalPages = Math.ceil(sortedInvoices.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedInvoices = sortedInvoices.slice(startIndex, startIndex + itemsPerPage);
+
+    // Get unique clients for filter dropdown
+    const uniqueClients = Array.from(new Set(invoices.map(inv => inv.clientDetail))).sort();
+
+    // KPI Calculations (based on filtered results)
+    const stats = filteredInvoices.reduce((acc, inv) => {
+        const invoiced = inv.amountDue || 0;
+        const paid = inv.amountPaid || 0;
+        const pending = invoiced - paid;
+
+        return {
+            totalInvoiced: acc.totalInvoiced + invoiced,
+            totalPaid: acc.totalPaid + paid,
+            totalPending: acc.totalPending + pending
+        };
+    }, { totalInvoiced: 0, totalPaid: 0, totalPending: 0 });
 
     useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, 'invoices'), (snapshot) => {
@@ -72,6 +128,8 @@ const InvoicesList: React.FC = () => {
                 return 'bg-green-50 text-green-700 ring-green-600/20';
             case 'Pending':
                 return 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
+            case 'Partial':
+                return 'bg-blue-50 text-blue-700 ring-blue-600/20';
             case 'Overdue':
                 return 'bg-red-50 text-red-700 ring-red-600/20';
             default:
@@ -86,7 +144,10 @@ const InvoicesList: React.FC = () => {
                 {/* Header Section */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Invoices</h1>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                            <FileText className="w-8 h-8 text-blue-600" />
+                            Invoices
+                        </h1>
                         <p className="text-slate-500 text-base">
                             Manage and track all generated invoices.
                         </p>
@@ -97,29 +158,149 @@ const InvoicesList: React.FC = () => {
                     </Link>
                 </div>
 
-                {/* Toolbar */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="relative w-full md:w-80">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <Search className="w-5 h-5" />
+                {/* KPI Statistics Section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Total Invoiced Card */}
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
+                            <FileText className="w-32 h-32 text-blue-900" />
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Search invoices..."
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                        />
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                                <FileText className="w-6 h-6" />
+                            </div>
+                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Total Invoiced</span>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-black text-slate-900">{formatCurrency(stats.totalInvoiced)}</span>
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 text-slate-700 shadow-sm transition-colors">
-                            <Filter className="w-4 h-4" />
-                            Filter
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 text-slate-700 shadow-sm transition-colors">
-                            <Download className="w-4 h-4" />
-                            Export
-                        </button>
+                    {/* Total Paid Card */}
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
+                            <CheckCircle2 className="w-32 h-32 text-emerald-900" />
+                        </div>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                                <CheckCircle2 className="w-6 h-6" />
+                            </div>
+                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Total Paid</span>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-black text-slate-900">{formatCurrency(stats.totalPaid)}</span>
+                        </div>
                     </div>
+
+                    {/* Total Pending Card */}
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
+                            <Clock className="w-32 h-32 text-amber-900" />
+                        </div>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                                <Clock className="w-6 h-6" />
+                            </div>
+                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Total Pending</span>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-black text-slate-900">{formatCurrency(stats.totalPending)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Toolbar */}
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="relative w-full md:w-80">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <Search className="w-5 h-5" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search invoices, clients, or projects..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all ${showFilters || statusFilter !== 'All' || clientFilter !== 'All' || dateFilter
+                                    ? 'bg-blue-50 text-blue-600 border-blue-200 border'
+                                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                                    }`}
+                            >
+                                <Filter className="w-4 h-4" />
+                                Filters {(statusFilter !== 'All' || clientFilter !== 'All' || dateFilter) && `(Active)`}
+                            </button>
+                            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 shadow-sm transition-all active:scale-95">
+                                <Download className="w-4 h-4" />
+                                Export
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Expandable Filter Panel */}
+                    {showFilters && (
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-white rounded-2xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Status</label>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                >
+                                    <option value="All">All Statuses</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Partial">Partial</option>
+                                    <option value="Overdue">Overdue</option>
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Client</label>
+                                <select
+                                    value={clientFilter}
+                                    onChange={(e) => setClientFilter(e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                >
+                                    <option value="All">All Clients</option>
+                                    {uniqueClients.map(client => (
+                                        <option key={client} value={client}>{client}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Issue Date (Month)</label>
+                                <input
+                                    type="month"
+                                    value={dateFilter}
+                                    onChange={(e) => setDateFilter(e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                />
+                            </div>
+
+                            <div className="flex items-end">
+                                <button
+                                    onClick={() => {
+                                        setStatusFilter('All');
+                                        setClientFilter('All');
+                                        setDateFilter('');
+                                        setSearchTerm('');
+                                    }}
+                                    className="w-full px-4 py-2 text-sm font-bold text-slate-500 hover:text-red-500 transition-colors flex items-center justify-center gap-2 border border-dashed border-slate-300 rounded-lg hover:border-red-200 hover:bg-red-50"
+                                >
+                                    <X className="w-4 h-4" />
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Table Container */}
@@ -165,9 +346,16 @@ const InvoicesList: React.FC = () => {
                                                 ${(invoice.amountDue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${getStatusStyle(invoice.status)}`}>
-                                                    {invoice.status}
-                                                </span>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${getStatusStyle(invoice.paymentStatus || invoice.status)}`}>
+                                                        {invoice.paymentStatus || invoice.status}
+                                                    </span>
+                                                    {invoice.paymentStatus === 'Partial' && (
+                                                        <span className="text-[10px] text-slate-500 font-medium">
+                                                            Bal: ${((invoice.amountDue || 0) - (invoice.amountPaid || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">

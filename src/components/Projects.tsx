@@ -139,7 +139,10 @@ const Projects: React.FC = () => {
                 {/* Header Section */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Projects</h1>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                            <FolderKanban className="w-8 h-8 text-blue-600" />
+                            Projects
+                        </h1>
                         <p className="text-slate-500 text-base">
                             Manage all your active and past client projects.
                         </p>

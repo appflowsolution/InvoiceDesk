@@ -18,6 +18,10 @@ const InvoiceForm: React.FC = () => {
     const [clientAddress, setClientAddress] = useState('');
     const [issueDate, setIssueDate] = useState('');
     const [dueDate, setDueDate] = useState('');
+    const [paymentStatus, setPaymentStatus] = useState<'Paid' | 'Pending' | 'Partial'>('Pending');
+    const [amountPaid, setAmountPaid] = useState(0);
+    const [selectedCompanyId, setSelectedCompanyId] = useState('');
+    const [companies, setCompanies] = useState<IssuerProfile[]>([]);
 
     const [projects, setProjects] = useState<{ id: string, name: string, clientName?: string }[]>([]);
     const [clients, setClients] = useState<any[]>([]);
@@ -84,6 +88,8 @@ const InvoiceForm: React.FC = () => {
                         setClientAddress(data.clientAddress || '');
                         setIssueDate(data.issueDate || '');
                         setDueDate(data.dueDate || '');
+                        setAmountPaid(data.amountPaid || 0);
+                        setPaymentStatus(data.paymentStatus || 'Pending');
 
                         // Items from DB arrive without 'id' (removed during save), so we need to add a temporary ID back for rendering
                         const fetchedItems = data.items && data.items.length > 0
@@ -91,6 +97,14 @@ const InvoiceForm: React.FC = () => {
                             : [{ id: crypto.randomUUID(), description: '', qty: 1, rate: 0 }];
 
                         setServiceItems(fetchedItems);
+
+                        // Load company data if present
+                        if (data.companyId) {
+                            setSelectedCompanyId(data.companyId);
+                        }
+                        if (data.issuerSnapshot) {
+                            setIssuer(data.issuerSnapshot);
+                        }
                     }
                 } catch (err) {
                     console.error("Error fetching invoice:", err);
@@ -112,18 +126,24 @@ const InvoiceForm: React.FC = () => {
             setClients(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         });
 
-        const unsubIssuer = onSnapshot(doc(db, 'settings', 'profile'), (doc) => {
-            if (doc.exists()) {
-                setIssuer(doc.data() as IssuerProfile);
+        const unsubCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
+            const comps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as IssuerProfile[];
+            setCompanies(comps);
+
+            // Set default company if none selected and it's a new invoice
+            if (!id && comps.length > 0) {
+                const defaultComp = comps.find(c => c.isDefault) || comps[0];
+                setSelectedCompanyId(defaultComp.id || '');
+                setIssuer(defaultComp);
             }
         });
 
         return () => {
             unsubProjects();
             unsubClients();
-            unsubIssuer();
+            unsubCompanies();
         };
-    }, []);
+    }, [id]);
 
     // Synchronize due date when issue date changes, but ONLY if it's a new invoice
     useEffect(() => {
@@ -153,6 +173,15 @@ const InvoiceForm: React.FC = () => {
     const tax = subtotal * taxRate;
     const amountDue = subtotal + tax;
 
+    const handleCompanyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const companyId = e.target.value;
+        setSelectedCompanyId(companyId);
+        const company = companies.find(c => c.id === companyId);
+        if (company) {
+            setIssuer(company);
+        }
+    };
+
     const handleSave = async (status: 'Registered' | 'Draft') => {
         setError('');
         setSuccess('');
@@ -173,11 +202,15 @@ const InvoiceForm: React.FC = () => {
                 clientAddress,
                 issueDate,
                 dueDate,
-                items: serviceItems.map(({ id, ...rest }) => rest), // Optional: remove local UUID before saving
+                items: serviceItems.map(({ id, ...rest }) => rest),
                 subtotal,
                 tax,
                 amountDue,
+                amountPaid: id ? amountPaid : 0,
+                paymentStatus: id ? paymentStatus : 'Pending',
                 status,
+                companyId: selectedCompanyId,
+                issuerSnapshot: issuer, // Save full snapshot for historical accuracy
                 updatedAt: new Date().toISOString()
             };
 
@@ -190,7 +223,6 @@ const InvoiceForm: React.FC = () => {
                 setSuccess(`Invoice successfully ${status === 'Draft' ? 'saved as draft' : 'registered'}!`);
 
                 if (status === 'Registered') {
-                    // Optional: clear form on successful registration
                     setProjectName('');
                     setClientDetail('');
                     setClientContact('');
@@ -260,7 +292,21 @@ const InvoiceForm: React.FC = () => {
 
                 {/* Form Card */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-6 border-b border-slate-100 pb-4">General Information</h3>
+                    <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                        <h3 className="text-lg font-semibold text-slate-800">General Information</h3>
+                        <div className="w-64">
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Issuing Company</label>
+                            <select
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
+                                value={selectedCompanyId}
+                                onChange={handleCompanyChange}
+                            >
+                                {companies.map(c => (
+                                    <option key={c.id} value={c.id}>{c.companyName}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
