@@ -87,3 +87,70 @@ body {
     /* slate-200 hex */
   }
 }
+
+/*
+  PDF Compatibility Fix: Override oklch colors with HEX/RGB
+  This MUST be outside of @media print because html2pdf.js captures the screen state,
+  and oklch() colors crash the underlying html2canvas engine.
+*/
+#printable-invoice,
+#printable-invoice * {
+  /* Redefine core Tailwind color variables as HEX */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+
+  /* Force these properties to use the HEX variables if they were using OKLCH */
+  color: inherit;
+}
+
+/* Specific background and border overrides to ensure they use HEX values */
+#printable-invoice .bg-blue-50 {
+  background-color: #eff6ff !important;
+}
+
+#printable-invoice .bg-slate-50 {
+  background-color: #f8fafc !important;
+}
+
+#printable-invoice .border-slate-100 {
+  border-color: #f1f5f9 !important;
+}
+
+#printable-invoice .border-slate-200 {
+  border-color: #e2e8f0 !important;
+}
+
+#printable-invoice .text-blue-600 {
+  color: #2563eb !important;
+}
+
+#printable-invoice .text-slate-900 {
+  color: #0f172a !important;
+}
+
+#printable-invoice .text-slate-600 {
+  color: #475569 !important;
+}
+
+#printable-invoice .text-slate-500 {
+  color: #64748b !important;
+}

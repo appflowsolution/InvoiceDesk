@@ -207,7 +207,7 @@ const InvoiceView: React.FC = () => {
 
         const opt: any = {
             margin: [10, 10, 10, 10],
-            filename: `${id || 'invoice'}.pdf`,
+            filename: `${invoice.invoiceId || 'invoice'}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, logging: false },
             jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
