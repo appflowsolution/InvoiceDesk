@@ -6,6 +6,7 @@ import InvoicesList from './components/InvoicesList';
 import InvoiceView from './components/InvoiceView';
 import Clients from './components/Clients';
 import Projects from './components/Projects';
+import Settings from './components/Settings';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -28,6 +29,7 @@ function App() {
                     <Route path="/invoices/view/:id" element={<InvoiceView />} />
                     <Route path="/clients" element={<Clients />} />
                     <Route path="/projects" element={<Projects />} />
+                    <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<Navigate to="/invoices" replace />} />
                   </Routes>
                 </div>

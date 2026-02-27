@@ -7,7 +7,7 @@ const Sidebar: React.FC = () => {
     const { user, logout } = useAuth();
 
     return (
-        <div className="w-64 bg-slate-900 h-screen text-slate-300 flex flex-col justify-between fixed top-0 left-0">
+        <div className="w-64 bg-slate-900 h-screen text-slate-300 flex flex-col justify-between fixed top-0 left-0 print:hidden">
             <div>
                 <div className="p-6">
                     <h1 className="text-white text-2xl font-bold tracking-tight">InvoiceDesk</h1>

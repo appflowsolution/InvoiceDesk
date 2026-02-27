@@ -7,6 +7,7 @@ interface Project {
     id: string;
     name: string;
     description: string;
+    clientName: string;
     status: 'Active' | 'Completed' | 'On Hold';
 }
 
@@ -17,8 +18,10 @@ const Projects: React.FC = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
+        clientName: '',
         status: 'Active' as 'Active' | 'Completed' | 'On Hold'
     });
+    const [clients, setClients] = useState<{ id: string, name: string }[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -43,12 +46,24 @@ const Projects: React.FC = () => {
             setProjects(projectsData);
         });
 
-        return () => unsubscribeProjects();
+        // Fetch Clients for the dropdown
+        const unsubscribeClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
+            const clientsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                name: doc.data().name
+            }));
+            setClients(clientsData);
+        });
+
+        return () => {
+            unsubscribeProjects();
+            unsubscribeClients();
+        };
     }, []);
 
     const openAddModal = () => {
         setCurrentProject(null);
-        setFormData({ name: '', description: '', status: 'Active' });
+        setFormData({ name: '', description: '', clientName: '', status: 'Active' });
         setIsModalOpen(true);
     };
 
@@ -57,6 +72,7 @@ const Projects: React.FC = () => {
         setFormData({
             name: project.name,
             description: project.description || '',
+            clientName: project.clientName || '',
             status: project.status
         });
         setIsModalOpen(true);
@@ -94,6 +110,7 @@ const Projects: React.FC = () => {
                 await updateDoc(projectRef, {
                     name: formData.name,
                     description: formData.description,
+                    clientName: formData.clientName,
                     status: formData.status
                 });
             } else {
@@ -101,6 +118,7 @@ const Projects: React.FC = () => {
                 await addDoc(collection(db, 'projects'), {
                     name: formData.name,
                     description: formData.description,
+                    clientName: formData.clientName,
                     status: formData.status,
                     createdAt: serverTimestamp()
                 });
@@ -164,6 +182,7 @@ const Projects: React.FC = () => {
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-200">
                                     <th className="px-6 py-4 text-slate-900 text-xs font-semibold uppercase tracking-wider">Project Name</th>
+                                    <th className="px-6 py-4 text-slate-900 text-xs font-semibold uppercase tracking-wider">Client</th>
                                     <th className="px-6 py-4 text-slate-900 text-xs font-semibold uppercase tracking-wider">Description</th>
                                     <th className="px-6 py-4 text-slate-900 text-xs font-semibold uppercase tracking-wider text-center">Status</th>
                                     <th className="px-6 py-4 text-slate-500 text-xs font-semibold uppercase tracking-wider text-right">Actions</th>
@@ -187,7 +206,10 @@ const Projects: React.FC = () => {
                                                     <span className="font-semibold text-slate-900">{project.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-slate-500 text-sm max-w-[250px] truncate">
+                                            <td className="px-6 py-4 text-slate-900 text-sm font-medium">
+                                                {project.clientName || <span className="text-slate-400 italic">No client</span>}
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-500 text-sm max-w-[200px] truncate">
                                                 {project.description || <span className="text-slate-400 italic">No description</span>}
                                             </td>
                                             <td className="px-6 py-4 text-center">
@@ -275,6 +297,20 @@ const Projects: React.FC = () => {
                                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                                     placeholder="e.g. Website Redesign"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Client</label>
+                                <select
+                                    required
+                                    value={formData.clientName}
+                                    onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                                >
+                                    <option value="">Select a client</option>
+                                    {clients.map(client => (
+                                        <option key={client.id} value={client.name}>{client.name}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>

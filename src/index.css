@@ -7,3 +7,83 @@
 body {
   font-family: var(--font-sans);
 }
+
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 10mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Force ALL containers to have white background in print to remove gray boxes */
+  *,
+  .bg-slate-50,
+  .bg-slate-100,
+  .bg-slate-50\/50 {
+    background-color: white !important;
+  }
+
+  /* Keep specifically colored backgrounds like the project chip */
+  .bg-blue-50 {
+    background-color: #eff6ff !important;
+  }
+
+  /* Utility to hide elements during print */
+  .print-hide,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Force main content to take full width and remove sidebar offset */
+  .flex-1,
+  .lg\:pl-80,
+  main,
+  #root {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    position: static !important;
+    transform: none !important;
+  }
+
+  /* Ensure the printable area has no extra wrapping padding from its parents */
+  .p-8,
+  .p-10,
+  .max-w-5xl {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Add a deliberate top margin for the invoice header in print */
+  .print-top-margin {
+    padding-top: 10mm !important;
+  }
+
+  /* Hide scrollbars and extra spacing */
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+
+  /* Reset shadows and borders that look bad in print */
+  .shadow-sm,
+  .shadow-xl,
+  .shadow-none {
+    box-shadow: none !important;
+  }
+
+  .border,
+  .border-slate-200 {
+    border-color: #e2e8f0 !important;
+    /* slate-200 hex */
+  }
+}

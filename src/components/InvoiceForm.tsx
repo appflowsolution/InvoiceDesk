@@ -3,7 +3,7 @@ import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc } from 'firebase
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import ServiceTable, { type ServiceItem } from './ServiceTable';
-import { PrintableInvoice, type InvoiceData } from './InvoiceView';
+import { PrintableInvoice, type InvoiceData, type IssuerProfile } from './InvoiceView';
 import { X, ArrowLeft } from 'lucide-react';
 
 const InvoiceForm: React.FC = () => {
@@ -13,11 +13,13 @@ const InvoiceForm: React.FC = () => {
     const [invoiceId, setInvoiceId] = useState('');
     const [projectName, setProjectName] = useState('');
     const [clientDetail, setClientDetail] = useState('');
+    const [clientContact, setClientContact] = useState('');
+    const [clientAddress, setClientAddress] = useState('');
     const [issueDate, setIssueDate] = useState('');
     const [dueDate, setDueDate] = useState('');
 
-    const [projects, setProjects] = useState<{ id: string, name: string }[]>([]);
-    const [clients, setClients] = useState<{ id: string, name: string }[]>([]);
+    const [projects, setProjects] = useState<{ id: string, name: string, clientName?: string }[]>([]);
+    const [clients, setClients] = useState<any[]>([]);
 
     const [serviceItems, setServiceItems] = useState<ServiceItem[]>([
         { id: crypto.randomUUID(), description: '', qty: 1, rate: 0 }
@@ -27,6 +29,14 @@ const InvoiceForm: React.FC = () => {
     const [showPreview, setShowPreview] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [issuer, setIssuer] = useState<IssuerProfile>({
+        companyName: 'InvoiceDesk Inc.',
+        address: '123 Billing Avenue',
+        cityStateZip: 'Tech District, CA 90210',
+        phone: '+1 (555) 123-4567',
+        email: 'contact@invoicedesk.app',
+        website: 'www.invoicedesk.app'
+    });
 
     useEffect(() => {
         if (!id) {
@@ -40,9 +50,9 @@ const InvoiceForm: React.FC = () => {
             const yyyyMmDd = today.toISOString().split('T')[0];
             setIssueDate(yyyyMmDd);
 
-            // Default due date to +14 days
+            // Default due date to +7 days
             const due = new Date(today);
-            due.setDate(due.getDate() + 14);
+            due.setDate(due.getDate() + 7);
             setDueDate(due.toISOString().split('T')[0]);
         } else {
             // Fetch existing invoice
@@ -54,6 +64,8 @@ const InvoiceForm: React.FC = () => {
                         setInvoiceId(data.invoiceId || '');
                         setProjectName(data.projectName || '');
                         setClientDetail(data.clientDetail || '');
+                        setClientContact(data.clientContact || '');
+                        setClientAddress(data.clientAddress || '');
                         setIssueDate(data.issueDate || '');
                         setDueDate(data.dueDate || '');
 
@@ -73,18 +85,52 @@ const InvoiceForm: React.FC = () => {
 
         // Fetch projects and clients
         const unsubProjects = onSnapshot(collection(db, 'projects'), (snapshot) => {
-            setProjects(snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
+            setProjects(snapshot.docs.map(doc => ({
+                id: doc.id,
+                name: doc.data().name,
+                clientName: doc.data().clientName || ''
+            })));
         });
 
         const unsubClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
-            setClients(snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
+            setClients(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const unsubIssuer = onSnapshot(doc(db, 'settings', 'profile'), (doc) => {
+            if (doc.exists()) {
+                setIssuer(doc.data() as IssuerProfile);
+            }
         });
 
         return () => {
             unsubProjects();
             unsubClients();
+            unsubIssuer();
         };
     }, []);
+
+    // Synchronize due date when issue date changes, but ONLY if it's a new invoice
+    useEffect(() => {
+        if (!id && issueDate) {
+            const currentIssueDate = new Date(issueDate);
+            const newDueDate = new Date(currentIssueDate);
+            newDueDate.setDate(newDueDate.getDate() + 7);
+            const formattedDueDate = newDueDate.toISOString().split('T')[0];
+            setDueDate(formattedDueDate);
+        }
+    }, [issueDate, id]);
+
+    // Synchronize client details when clientDetail changes
+    useEffect(() => {
+        if (clientDetail && clients.length > 0) {
+            const trimmedDetail = clientDetail.trim().toLowerCase();
+            const client = clients.find(c => (c.name || '').trim().toLowerCase() === trimmedDetail);
+            if (client) {
+                setClientContact(client.contact || '');
+                setClientAddress(client.address || '');
+            }
+        }
+    }, [clientDetail, clients]);
 
     const subtotal = serviceItems.reduce((sum, item) => sum + (item.qty * item.rate), 0);
     const taxRate = 0; // 0% by default based on requirements
@@ -107,6 +153,8 @@ const InvoiceForm: React.FC = () => {
                 invoiceId,
                 projectName,
                 clientDetail,
+                clientContact,
+                clientAddress,
                 issueDate,
                 dueDate,
                 items: serviceItems.map(({ id, ...rest }) => rest), // Optional: remove local UUID before saving
@@ -129,6 +177,8 @@ const InvoiceForm: React.FC = () => {
                     // Optional: clear form on successful registration
                     setProjectName('');
                     setClientDetail('');
+                    setClientContact('');
+                    setClientAddress('');
                     setServiceItems([{ id: crypto.randomUUID(), description: '', qty: 1, rate: 0 }]);
                     const year = new Date().getFullYear();
                     const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -204,7 +254,16 @@ const InvoiceForm: React.FC = () => {
                             <select
                                 className="w-full px-3 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-white shadow-sm"
                                 value={projectName}
-                                onChange={(e) => setProjectName(e.target.value)}
+                                onChange={(e) => {
+                                    const selectedProjName = e.target.value;
+                                    setProjectName(selectedProjName);
+
+                                    // Auto-select client if project has one
+                                    const project = projects.find(p => (p.name || '').trim().toLowerCase() === selectedProjName.trim().toLowerCase());
+                                    if (project && project.clientName) {
+                                        setClientDetail(project.clientName);
+                                    }
+                                }}
                             >
                                 <option value="">Select a project</option>
                                 {projects.map(p => (
@@ -239,6 +298,12 @@ const InvoiceForm: React.FC = () => {
                                     <option key={c.id} value={c.name}>{c.name}</option>
                                 ))}
                             </select>
+                        </div>
+
+                        {/* Hidden state for background processing, but not editable by user as per request */}
+                        <div className="hidden">
+                            <input type="hidden" value={clientContact} />
+                            <input type="hidden" value={clientAddress} />
                         </div>
 
                         <div>
@@ -318,18 +383,23 @@ const InvoiceForm: React.FC = () => {
                             </div>
                             {/* Modal Body */}
                             <div className="p-8 overflow-y-auto grow">
-                                <PrintableInvoice invoice={{
-                                    invoiceId,
-                                    projectName,
-                                    clientDetail,
-                                    issueDate,
-                                    dueDate,
-                                    items: serviceItems.map(({ id, ...rest }) => rest) as any,
-                                    subtotal,
-                                    tax,
-                                    amountDue,
-                                    status: 'Draft' // Defaults to Draft or current status if fetched
-                                }} />
+                                <PrintableInvoice
+                                    invoice={{
+                                        invoiceId,
+                                        projectName,
+                                        clientDetail,
+                                        clientContact,
+                                        clientAddress,
+                                        issueDate,
+                                        dueDate,
+                                        items: serviceItems.map(({ id, ...rest }) => rest) as any,
+                                        subtotal,
+                                        tax,
+                                        amountDue,
+                                        status: 'Draft'
+                                    }}
+                                    issuer={issuer}
+                                />
                             </div>
                         </div>
                     </div>

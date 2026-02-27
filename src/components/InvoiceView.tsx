@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { ArrowLeft, Printer, Download, FileText } from 'lucide-react';
+import { ChevronLeft, Printer, Download, FileText } from 'lucide-react';
 import type { ServiceItem } from './ServiceTable';
 
 export interface InvoiceData {
     invoiceId: string;
     projectName: string;
     clientDetail: string;
+    clientContact?: string;
+    clientAddress?: string;
     issueDate: string;
     dueDate: string;
     items: ServiceItem[];
@@ -18,42 +20,54 @@ export interface InvoiceData {
     status: string;
 }
 
-export const PrintableInvoice: React.FC<{ invoice: InvoiceData }> = ({ invoice }) => {
+export interface IssuerProfile {
+    companyName: string;
+    address: string;
+    cityStateZip: string;
+    phone: string;
+    email: string;
+    website?: string;
+}
+
+export const PrintableInvoice: React.FC<{ invoice: InvoiceData, issuer: IssuerProfile }> = ({ invoice, issuer }) => {
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-10 print:shadow-none print:border-none print:p-0">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-10 print:shadow-none print:border-none print:p-0 print:w-full print:max-w-none print:block print-top-margin">
             {/* Invoice Header */}
-            <div className="flex justify-between items-start mb-12 border-b border-slate-100 pb-8">
+            <div className="flex justify-between items-start mb-8 border-b border-slate-100 pb-6 print:mb-6 print:pb-4">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-2">INVOICE</h1>
                     <p className="text-slate-500 font-medium">{invoice.invoiceId}</p>
 
-                    <div className="mt-6">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${invoice.status === 'Paid' ? 'bg-green-50 text-green-700 ring-green-600/20' :
-                            invoice.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 ring-yellow-600/20' :
-                                invoice.status === 'Overdue' ? 'bg-red-50 text-red-700 ring-red-600/20' :
-                                    'bg-slate-50 text-slate-700 ring-slate-600/20'
-                            }`}>
-                            {invoice.status.toUpperCase()}
-                        </span>
-                    </div>
                 </div>
 
                 <div className="text-right">
-                    <h3 className="text-xl font-bold text-slate-800">InvoiceDesk Inc.</h3>
-                    <p className="text-slate-500 text-sm mt-1">123 Billing Avenue</p>
-                    <p className="text-slate-500 text-sm">Tech District, CA 90210</p>
-                    <p className="text-slate-500 text-sm mt-1">contact@invoicedesk.app</p>
+                    <h3 className="text-xl font-bold text-slate-800">{issuer.companyName}</h3>
+                    <p className="text-slate-500 text-sm mt-1">{issuer.address}</p>
+                    <p className="text-slate-500 text-sm">{issuer.cityStateZip}</p>
+                    <p className="text-slate-500 text-sm mt-1">{issuer.email}</p>
                 </div>
             </div>
 
             {/* Invoice Info Details */}
-            <div className="grid grid-cols-2 gap-12 mb-12">
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Billed To</h4>
-                    <p className="text-lg font-bold text-slate-800">{invoice.clientDetail || 'Valued Client'}</p>
-                    <p className="text-slate-500 text-sm mt-1">Project: {invoice.projectName || 'General Services'}</p>
+            <div className="grid grid-cols-2 gap-12 mb-8 print:mb-6">
+                <div className="space-y-4">
+                    <div>
+                        <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Billed To</h4>
+                        <div className="space-y-1">
+                            <p className="text-slate-700 text-sm"><span className="font-bold text-slate-900">Client:</span> {invoice.clientDetail || '---'}</p>
+                            <p className="text-slate-700 text-sm"><span className="font-bold text-slate-900">Contact:</span> {invoice.clientContact || '---'}</p>
+                            <p className="text-slate-700 text-sm"><span className="font-bold text-slate-900">Address:</span> {invoice.clientAddress || '---'}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 inline-block">
+                        <h4 className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Project</h4>
+                        <p className="text-blue-900 font-extrabold text-base leading-tight">
+                            {invoice.projectName || 'General Services'}
+                        </p>
+                    </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right space-y-6">
                     <div className="mb-4">
                         <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">Date of Issue</h4>
                         <p className="text-slate-800 font-medium">{new Date(invoice.issueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
@@ -66,23 +80,23 @@ export const PrintableInvoice: React.FC<{ invoice: InvoiceData }> = ({ invoice }
             </div>
 
             {/* Services Items Table */}
-            <div className="mb-10">
+            <div className="mb-6 print:mb-4">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b-2 border-slate-200">
                             <th className="py-3 text-slate-800 font-semibold text-sm">Description</th>
-                            <th className="py-3 text-slate-800 font-semibold text-sm text-center">Qty / Hours</th>
-                            <th className="py-3 text-slate-800 font-semibold text-sm text-right">Rate</th>
-                            <th className="py-3 text-slate-800 font-semibold text-sm text-right">Amount</th>
+                            <th className="py-3 text-slate-800 font-semibold text-sm text-center w-24">Qty / Hours</th>
+                            <th className="py-3 text-slate-800 font-semibold text-sm text-right w-24">Rate</th>
+                            <th className="py-3 text-slate-800 font-semibold text-sm text-right w-24">Amount</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {invoice.items && invoice.items.length > 0 ? invoice.items.map((item, index) => (
                             <tr key={index}>
                                 <td className="py-4 text-slate-700">{item.description}</td>
-                                <td className="py-4 text-slate-700 text-center">{item.qty}</td>
-                                <td className="py-4 text-slate-700 text-right">${item.rate.toFixed(2)}</td>
-                                <td className="py-4 text-slate-900 font-medium text-right">${(item.qty * item.rate).toFixed(2)}</td>
+                                <td className="py-4 text-slate-700 text-center w-24">{item.qty}</td>
+                                <td className="py-4 text-slate-700 text-right w-24">${item.rate.toFixed(2)}</td>
+                                <td className="py-4 text-slate-900 font-medium text-right w-24">${(item.qty * item.rate).toFixed(2)}</td>
                             </tr>
                         )) : (
                             <tr>
@@ -112,7 +126,7 @@ export const PrintableInvoice: React.FC<{ invoice: InvoiceData }> = ({ invoice }
             </div>
 
             {/* Footer / Notes */}
-            <div className="mt-16 pt-8 border-t border-slate-100 text-slate-500 text-sm">
+            <div className="mt-8 pt-4 border-t border-slate-100 text-slate-500 text-sm print:mt-12 print:pt-4">
                 <p className="font-medium text-slate-700 mb-1">Thank you for your business.</p>
                 <p>Please send payment within {(new Date(invoice.dueDate).getTime() - new Date(invoice.issueDate).getTime()) / (1000 * 3600 * 24)} days of receiving this invoice.</p>
             </div>
@@ -124,6 +138,14 @@ const InvoiceView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [invoice, setInvoice] = useState<InvoiceData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [issuer, setIssuer] = useState<IssuerProfile>({
+        companyName: 'InvoiceDesk Inc.',
+        address: '123 Billing Avenue',
+        cityStateZip: 'Tech District, CA 90210',
+        phone: '+1 (555) 123-4567',
+        email: 'contact@invoicedesk.app',
+        website: 'www.invoicedesk.app'
+    });
 
     useEffect(() => {
         const fetchInvoice = async () => {
@@ -143,7 +165,14 @@ const InvoiceView: React.FC = () => {
             }
         };
 
+        const unsubscribeIssuer = onSnapshot(doc(db, 'settings', 'profile'), (doc) => {
+            if (doc.exists()) {
+                setIssuer(doc.data() as IssuerProfile);
+            }
+        });
+
         fetchInvoice();
+        return () => unsubscribeIssuer();
     }, [id]);
 
     if (loading) {
@@ -181,7 +210,7 @@ const InvoiceView: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 print:hidden">
                     <div className="flex flex-col gap-2">
                         <Link to="/invoices" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
-                            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Invoices
+                            <ChevronLeft className="w-4 h-4 mr-1" /> Back to Invoices
                         </Link>
                         <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Invoice Details</h2>
                     </div>
@@ -202,7 +231,7 @@ const InvoiceView: React.FC = () => {
                 </div>
 
                 {/* Printable Invoice Card */}
-                <PrintableInvoice invoice={invoice} />
+                <PrintableInvoice invoice={invoice} issuer={issuer} />
             </div>
         </div>
     );
