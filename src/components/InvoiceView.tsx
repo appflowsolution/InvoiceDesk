@@ -32,7 +32,7 @@ export interface IssuerProfile {
 
 export const PrintableInvoice: React.FC<{ invoice: InvoiceData, issuer: IssuerProfile }> = ({ invoice, issuer }) => {
     return (
-        <div id="printable-invoice" className="bg-white rounded-xl shadow-sm border border-slate-200 p-10 print:shadow-none print:border-none print:p-0 print:w-full print:max-w-none print:block print-top-margin">
+        <div id="printable-invoice" className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 print:shadow-none print:border-none print:p-0 print:w-full print:max-w-none print:block print-top-margin">
             {/* Invoice Header */}
             <div className="flex justify-between items-start mb-8 border-b border-slate-100 pb-6 print:mb-6 print:pb-4">
                 <div>
@@ -57,14 +57,8 @@ export const PrintableInvoice: React.FC<{ invoice: InvoiceData, issuer: IssuerPr
                             <p className="text-slate-700 text-sm"><span className="font-bold text-slate-900">Client:</span> {invoice.clientDetail || '---'}</p>
                             <p className="text-slate-700 text-sm"><span className="font-bold text-slate-900">Contact:</span> {invoice.clientContact || '---'}</p>
                             <p className="text-slate-700 text-sm"><span className="font-bold text-slate-900">Address:</span> {invoice.clientAddress || '---'}</p>
+                            <p className="text-slate-700 text-sm pt-1"><span className="font-bold text-slate-900">Project:</span> <span className="font-bold">{invoice.projectName || 'General Services'}</span></p>
                         </div>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 inline-block">
-                        <h4 className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Project</h4>
-                        <p className="text-blue-900 font-extrabold text-base leading-tight">
-                            {invoice.projectName || 'General Services'}
-                        </p>
                     </div>
                 </div>
                 <div className="text-right space-y-6">
@@ -206,11 +200,17 @@ const InvoiceView: React.FC = () => {
         if (!element) return;
 
         const opt: any = {
-            margin: [10, 10, 10, 10],
+            margin: [5, 5, 5, 5], // Reduced margin to fit better
             filename: `${invoice.invoiceId || 'invoice'}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                letterRendering: true
+            },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+            pagebreak: { mode: 'avoid-all' }
         };
 
         html2pdf().set(opt).from(element).save();
