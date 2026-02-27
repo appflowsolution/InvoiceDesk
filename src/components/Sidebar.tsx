@@ -17,7 +17,7 @@ const Sidebar: React.FC = () => {
                         <LayoutDashboard className="w-5 h-5 mr-3" />
                         <span className="font-medium">Overview</span>
                     </NavLink>
-                    <NavLink to="/invoices/new" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>
+                    <NavLink to="/invoices" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>
                         <FileText className="w-5 h-5 mr-3" />
                         <span className="font-medium">Invoices</span>
                     </NavLink>

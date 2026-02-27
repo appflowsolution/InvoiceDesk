@@ -28,6 +28,7 @@ const getInitials = (name: string) => {
 
 const Clients: React.FC = () => {
     const [clients, setClients] = useState<Client[]>([]);
+    const [invoices, setInvoices] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentClient, setCurrentClient] = useState<Client | null>(null);
     const [formData, setFormData] = useState({
@@ -53,14 +54,23 @@ const Clients: React.FC = () => {
     const paginatedClients = sortedClients.slice(startIndex, startIndex + itemsPerPage);
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(collection(db, 'clients'), (snapshot) => {
+        const unsubscribeClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
             const clientsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             })) as Client[];
             setClients(clientsData);
         });
-        return () => unsubscribe();
+
+        const unsubscribeInvoices = onSnapshot(collection(db, 'invoices'), (snapshot) => {
+            const invoicesData = snapshot.docs.map(doc => doc.data());
+            setInvoices(invoicesData);
+        });
+
+        return () => {
+            unsubscribeClients();
+            unsubscribeInvoices();
+        };
     }, []);
 
     const openAddModal = () => {
@@ -208,45 +218,52 @@ const Clients: React.FC = () => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    paginatedClients.map((client) => (
-                                        <tr key={client.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-blue-600 font-bold overflow-hidden shrink-0">
-                                                        {client.avatarUrl ? (
-                                                            <img src={client.avatarUrl} alt={client.name} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <span className="text-sm bg-blue-100 w-full h-full flex items-center justify-center text-blue-700">{getInitials(client.name)}</span>
-                                                        )}
+                                    paginatedClients.map((client) => {
+                                        // Calculate dynamic totals based on invoices
+                                        const clientInvoices = invoices.filter(inv => inv.clientDetail === client.name);
+                                        const totalBilled = clientInvoices.reduce((sum, inv) => sum + (Number(inv.amountDue) || 0), 0);
+                                        const uniqueProjectsCount = new Set(clientInvoices.map(inv => inv.projectName).filter(Boolean)).size;
+
+                                        return (
+                                            <tr key={client.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-blue-600 font-bold overflow-hidden shrink-0">
+                                                            {client.avatarUrl ? (
+                                                                <img src={client.avatarUrl} alt={client.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <span className="text-sm bg-blue-100 w-full h-full flex items-center justify-center text-blue-700">{getInitials(client.name)}</span>
+                                                            )}
+                                                        </div>
+                                                        <span className="font-semibold text-slate-900">{client.name}</span>
                                                     </div>
-                                                    <span className="font-semibold text-slate-900">{client.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-500 text-sm">{client.email}</td>
-                                            <td className="px-6 py-4 text-slate-500 text-sm">{client.projects || 0} {(client.projects || 0) === 1 ? 'Project' : 'Projects'}</td>
-                                            <td className="px-6 py-4 text-slate-900 font-medium">
-                                                ${(client.totalBilled || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${client.status === 'Active'
-                                                    ? 'bg-green-50 text-green-700 ring-green-600/20'
-                                                    : 'bg-slate-100 text-slate-600 ring-slate-500/10'
-                                                    }`}>
-                                                    {client.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <button onClick={() => openEditModal(client)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => confirmDelete(client.id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-500 text-sm">{client.email}</td>
+                                                <td className="px-6 py-4 text-slate-500 text-sm">{uniqueProjectsCount} {uniqueProjectsCount === 1 ? 'Project' : 'Projects'}</td>
+                                                <td className="px-6 py-4 text-slate-900 font-medium">
+                                                    ${totalBilled.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${client.status === 'Active'
+                                                        ? 'bg-green-50 text-green-700 ring-green-600/20'
+                                                        : 'bg-slate-100 text-slate-600 ring-slate-500/10'
+                                                        }`}>
+                                                        {client.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button onClick={() => openEditModal(client)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => confirmDelete(client.id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>

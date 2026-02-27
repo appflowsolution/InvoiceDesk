@@ -1,30 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import ServiceTable, { type ServiceItem } from './ServiceTable';
+import { PrintableInvoice, type InvoiceData } from './InvoiceView';
+import { X, ArrowLeft } from 'lucide-react';
 
 const InvoiceForm: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+
     const [invoiceId, setInvoiceId] = useState('');
     const [projectName, setProjectName] = useState('');
     const [clientDetail, setClientDetail] = useState('');
     const [issueDate, setIssueDate] = useState('');
+    const [dueDate, setDueDate] = useState('');
+
+    const [projects, setProjects] = useState<{ id: string, name: string }[]>([]);
+    const [clients, setClients] = useState<{ id: string, name: string }[]>([]);
 
     const [serviceItems, setServiceItems] = useState<ServiceItem[]>([
         { id: crypto.randomUUID(), description: '', qty: 1, rate: 0 }
     ]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
     useEffect(() => {
-        // Generate random Invoice ID like INV-#2023-0842
-        const year = new Date().getFullYear();
-        const randomNum = Math.floor(1000 + Math.random() * 9000);
-        setInvoiceId(`INV-#${year}-${randomNum}`);
+        if (!id) {
+            // Generate random Invoice ID like INV-#2023-0842
+            const year = new Date().getFullYear();
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            setInvoiceId(`INV-#${year}-${randomNum}`);
 
-        // Set default date to today
-        setIssueDate(new Date().toISOString().split('T')[0]);
+            // Set default date to today
+            const today = new Date();
+            const yyyyMmDd = today.toISOString().split('T')[0];
+            setIssueDate(yyyyMmDd);
+
+            // Default due date to +14 days
+            const due = new Date(today);
+            due.setDate(due.getDate() + 14);
+            setDueDate(due.toISOString().split('T')[0]);
+        } else {
+            // Fetch existing invoice
+            const fetchInvoice = async () => {
+                try {
+                    const docSnap = await getDoc(doc(db, 'invoices', id));
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        setInvoiceId(data.invoiceId || '');
+                        setProjectName(data.projectName || '');
+                        setClientDetail(data.clientDetail || '');
+                        setIssueDate(data.issueDate || '');
+                        setDueDate(data.dueDate || '');
+
+                        // Items from DB arrive without 'id' (removed during save), so we need to add a temporary ID back for rendering
+                        const fetchedItems = data.items && data.items.length > 0
+                            ? data.items.map((item: Omit<ServiceItem, 'id'>) => ({ ...item, id: crypto.randomUUID() }))
+                            : [{ id: crypto.randomUUID(), description: '', qty: 1, rate: 0 }];
+
+                        setServiceItems(fetchedItems);
+                    }
+                } catch (err) {
+                    console.error("Error fetching invoice:", err);
+                }
+            };
+            fetchInvoice();
+        }
+
+        // Fetch projects and clients
+        const unsubProjects = onSnapshot(collection(db, 'projects'), (snapshot) => {
+            setProjects(snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
+        });
+
+        const unsubClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
+            setClients(snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
+        });
+
+        return () => {
+            unsubProjects();
+            unsubClients();
+        };
     }, []);
 
     const subtotal = serviceItems.reduce((sum, item) => sum + (item.qty * item.rate), 0);
@@ -49,26 +108,32 @@ const InvoiceForm: React.FC = () => {
                 projectName,
                 clientDetail,
                 issueDate,
+                dueDate,
                 items: serviceItems.map(({ id, ...rest }) => rest), // Optional: remove local UUID before saving
                 subtotal,
                 tax,
                 amountDue,
                 status,
-                createdAt: new Date().toISOString()
+                updatedAt: new Date().toISOString()
             };
 
-            await addDoc(collection(db, 'invoices'), invoiceData);
+            if (id) {
+                await updateDoc(doc(db, 'invoices', id), invoiceData);
+                setSuccess(`Invoice successfully updated!`);
+                setTimeout(() => navigate('/invoices'), 1500);
+            } else {
+                await addDoc(collection(db, 'invoices'), { ...invoiceData, createdAt: new Date().toISOString() });
+                setSuccess(`Invoice successfully ${status === 'Draft' ? 'saved as draft' : 'registered'}!`);
 
-            setSuccess(`Invoice successfully ${status === 'Draft' ? 'saved as draft' : 'registered'}!`);
-
-            if (status === 'Registered') {
-                // Optional: clear form on successful registration
-                setProjectName('');
-                setClientDetail('');
-                setServiceItems([{ id: crypto.randomUUID(), description: '', qty: 1, rate: 0 }]);
-                const year = new Date().getFullYear();
-                const randomNum = Math.floor(1000 + Math.random() * 9000);
-                setInvoiceId(`INV-#${year}-${randomNum}`);
+                if (status === 'Registered') {
+                    // Optional: clear form on successful registration
+                    setProjectName('');
+                    setClientDetail('');
+                    setServiceItems([{ id: crypto.randomUUID(), description: '', qty: 1, rate: 0 }]);
+                    const year = new Date().getFullYear();
+                    const randomNum = Math.floor(1000 + Math.random() * 9000);
+                    setInvoiceId(`INV-#${year}-${randomNum}`);
+                }
             }
         } catch (err: any) {
             console.error('Error adding document: ', err);
@@ -79,30 +144,47 @@ const InvoiceForm: React.FC = () => {
     };
 
     return (
-        <div className="flex-1 bg-slate-50 min-h-screen p-8 pl-80">
-            <div className="max-w-4xl mx-auto">
+        <div className="flex-1 bg-slate-50 min-h-screen p-8 lg:pl-80">
+            <div className="max-w-7xl mx-auto">
 
                 {/* Header section */}
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Create New Invoice</h2>
-                        <p className="text-slate-500 mt-1">Issue professional billing documents to your clients.</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            type="button"
-                            onClick={() => handleSave('Draft')}
-                            disabled={isSubmitting}
-                            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-md font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-50"
-                        >
-                            Save as Draft
-                        </button>
-                        <button
-                            type="button"
-                            className="px-4 py-2 bg-slate-100 text-slate-700 border border-slate-200 rounded-md font-medium hover:bg-slate-200 transition-colors shadow-sm"
-                        >
-                            Preview Mode
-                        </button>
+                <div className="mb-8">
+                    <button
+                        onClick={() => navigate('/invoices')}
+                        className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors mb-6 font-medium w-fit"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Invoices
+                    </button>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-3xl font-bold text-slate-800 tracking-tight">{id ? 'Edit Invoice' : 'Create New Invoice'}</h2>
+                            <p className="text-slate-500 mt-1">{id ? 'Modify an existing billing document.' : 'Issue professional billing documents to your clients.'}</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/invoices')}
+                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-md font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleSave('Draft')}
+                                disabled={isSubmitting}
+                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-md font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-50"
+                            >
+                                Save as Draft
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowPreview(true)}
+                                className="px-4 py-2 bg-slate-100 text-slate-700 border border-slate-200 rounded-md font-medium hover:bg-slate-200 transition-colors shadow-sm"
+                            >
+                                Preview Mode
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -125,10 +207,9 @@ const InvoiceForm: React.FC = () => {
                                 onChange={(e) => setProjectName(e.target.value)}
                             >
                                 <option value="">Select a project</option>
-                                <option value="Website Redesign">Website Redesign</option>
-                                <option value="Mobile App Development">Mobile App Development</option>
-                                <option value="SEO Optimization">SEO Optimization</option>
-                                <option value="Branding Package">Branding Package</option>
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.name}>{p.name}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -148,13 +229,16 @@ const InvoiceForm: React.FC = () => {
                             <label className="block text-sm font-medium text-slate-700 mb-1">
                                 Client Detail
                             </label>
-                            <input
-                                type="text"
-                                placeholder="Enter client name or company"
-                                className="w-full px-3 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 shadow-sm"
+                            <select
+                                className="w-full px-3 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-white shadow-sm"
                                 value={clientDetail}
                                 onChange={(e) => setClientDetail(e.target.value)}
-                            />
+                            >
+                                <option value="">Select a client</option>
+                                {clients.map(c => (
+                                    <option key={c.id} value={c.name}>{c.name}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div>
@@ -166,6 +250,18 @@ const InvoiceForm: React.FC = () => {
                                 className="w-full px-3 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 shadow-sm"
                                 value={issueDate}
                                 onChange={(e) => setIssueDate(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                Due Date
+                            </label>
+                            <input
+                                type="date"
+                                className="w-full px-3 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 shadow-sm"
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
                             />
                         </div>
                     </div>
@@ -197,12 +293,49 @@ const InvoiceForm: React.FC = () => {
                             disabled={isSubmitting}
                             className="px-6 py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
-                            {isSubmitting ? 'Processing...' : 'GENERATE & REGISTER INVOICE'}
+                            {isSubmitting ? 'Processing...' : (id ? 'UPDATE INVOICE' : 'GENERATE & REGISTER INVOICE')}
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Preview Modal Overlay */}
+            {
+                showPreview && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+                        <div className="bg-slate-50 rounded-xl shadow-xl w-full max-w-5xl my-8 relative flex flex-col max-h-[90vh]">
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white rounded-t-xl sticky top-0 z-10 shrink-0">
+                                <h3 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                                    Invoice Preview
+                                </h3>
+                                <button
+                                    onClick={() => setShowPreview(false)}
+                                    className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors focus:outline-none"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            {/* Modal Body */}
+                            <div className="p-8 overflow-y-auto grow">
+                                <PrintableInvoice invoice={{
+                                    invoiceId,
+                                    projectName,
+                                    clientDetail,
+                                    issueDate,
+                                    dueDate,
+                                    items: serviceItems.map(({ id, ...rest }) => rest) as any,
+                                    subtotal,
+                                    tax,
+                                    amountDue,
+                                    status: 'Draft' // Defaults to Draft or current status if fetched
+                                }} />
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 
