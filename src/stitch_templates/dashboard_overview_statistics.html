@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ProBilling - Dashboard Overview Statistics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0f0fbd",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">ProBilling</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full bg-slate-100 dark:bg-slate-800">
+<div class="text-slate-500 flex items-center justify-center pl-4 rounded-l-xl">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 placeholder:text-slate-500 px-4 pl-2 text-base font-normal" placeholder="Search invoices..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="flex items-center gap-9">
+<a class="text-primary text-sm font-semibold leading-normal" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Invoices</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Projects</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Clients</a>
+</nav>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200" data-alt="User profile avatar of a professional freelancer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBJ2GYi_TUFT74hkwHxKWyDaDmX_vgKwsNsZcPp1BCb7TlFRGzwBpcoqtxwZdxOR9JUv756EhaQlrtM_h7c1eXVa50rT5vAYXxhHqFkS9Bx8CHv6ADkusapXmSGdfGSUuoea9x0b6OMmPhHAyq4qZRPgAtbBSl47pG6nh_mhkyxBF-o6oFhqHGX6A5LnIpIMxEsxnpbf9LERmexKj2xSugfgpUUzi9TzIN3UKLBLZJOmXGgVZfk_77XfEQGo8NykGDdk9OAc0BXuHP_");'></div>
+</div>
+</header>
+<main class="flex-1 px-10 py-8 max-w-[1440px] mx-auto w-full">
+<!-- Header Section -->
+<div class="flex flex-wrap justify-between items-end gap-3 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Dashboard Overview</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal">Welcome back, Sarah. Here's your financial performance at a glance.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-xl h-12 px-6 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm">
+<span class="material-symbols-outlined mr-2">download</span> Export Report
+                </button>
+<button class="flex items-center justify-center rounded-xl h-12 px-6 bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined mr-2">add</span> Create Invoice
+                </button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-6">
+<!-- KPI Cards -->
+<div class="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Total Revenue -->
+<div class="flex flex-col gap-4 rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Revenue</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold leading-tight mt-1">$12,840.50</p>
+</div>
+<div class="px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                            +12.5%
+                        </div>
+</div>
+<div class="h-12 w-full mt-2">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 40">
+<path d="M0 35 Q 20 10, 40 30 T 80 15 T 100 25" fill="none" stroke="#10b981" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+<!-- Pending Invoices -->
+<div class="flex flex-col gap-4 rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Pending Invoices</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold leading-tight mt-1">$2,450.00</p>
+</div>
+<div class="px-2 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-xs font-bold">
+                            -2.1%
+                        </div>
+</div>
+<div class="h-12 w-full mt-2">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 40">
+<path d="M0 15 Q 25 35, 50 15 T 100 30" fill="none" stroke="#f43f5e" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+<!-- Active Projects -->
+<div class="flex flex-col gap-4 rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Active Projects</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold leading-tight mt-1">8 Projects</p>
+</div>
+<div class="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                            +1
+                        </div>
+</div>
+<div class="h-12 w-full mt-2">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 40">
+<path d="M0 20 L 20 20 L 40 10 L 60 30 L 80 10 L 100 15" fill="none" stroke="#3b82f6" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+<!-- Revenue Chart -->
+<div class="col-span-12 flex flex-col gap-6 rounded-2xl p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">Revenue vs. Expenses</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Monthly growth analysis</p>
+</div>
+<select class="bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm font-semibold px-4 focus:ring-primary">
+<option>Last 6 Months</option>
+<option>Last 12 Months</option>
+</select>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-slate-900 dark:text-white text-4xl font-bold tracking-tight">$45,200</span>
+<span class="text-emerald-500 font-bold text-sm">+8.4% from last period</span>
+</div>
+<div class="flex min-h-[300px] flex-col gap-4">
+<div class="relative flex-1">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 478 150">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#0f0fbd" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#0f0fbd" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 100 C 50 80, 100 120, 150 60 C 200 10, 250 80, 300 40 C 350 10, 400 60, 478 20 V 150 H 0 Z" fill="url(#chartGradient)"></path>
+<path d="M0 100 C 50 80, 100 120, 150 60 C 200 10, 250 80, 300 40 C 350 10, 400 60, 478 20" fill="none" stroke="#0f0fbd" stroke-linecap="round" stroke-width="4"></path>
+</svg>
+</div>
+<div class="flex justify-between px-2">
+<p class="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">Jan</p>
+<p class="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">Feb</p>
+<p class="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">Mar</p>
+<p class="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">Apr</p>
+<p class="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">May</p>
+<p class="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">Jun</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Panels -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<!-- Quick Actions -->
+<div class="rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold mb-4">Quick Actions</h3>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">receipt</span>
+</div>
+<span class="text-xs font-bold">New Invoice</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">person_add</span>
+</div>
+<span class="text-xs font-bold">Add Client</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">assignment</span>
+</div>
+<span class="text-xs font-bold">Project Brief</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">bar_chart</span>
+</div>
+<span class="text-xs font-bold">Tax Report</span>
+</button>
+</div>
+</div>
+<!-- Recent Activity Feed -->
+<div class="rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-1">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">Recent Activity</h3>
+<a class="text-primary text-xs font-bold hover:underline" href="#">View All</a>
+</div>
+<div class="flex flex-col gap-6">
+<!-- Activity Item 1 -->
+<div class="flex gap-4">
+<div class="size-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 text-emerald-600">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Invoice #3492 Paid</p>
+<p class="text-xs text-slate-500">Design System Project - $1,200.00</p>
+<p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">2 hours ago</p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex gap-4">
+<div class="size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 text-blue-600">
+<span class="material-symbols-outlined text-xl">send</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Invoice #3495 Sent</p>
+<p class="text-xs text-slate-500">Acme Corp Consulting</p>
+<p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">5 hours ago</p>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="flex gap-4">
+<div class="size-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 text-amber-600">
+<span class="material-symbols-outlined text-xl">group</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold text-slate-900 dark:text-white">New Client Onboarded</p>
+<p class="text-xs text-slate-500">Digital Flow Agency</p>
+<p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">Yesterday</p>
+</div>
+</div>
+<!-- Activity Item 4 -->
+<div class="flex gap-4">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 text-slate-500">
+<span class="material-symbols-outlined text-xl">update</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Profile Updated</p>
+<p class="text-xs text-slate-500">Changed billing frequency settings</p>
+<p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">2 days ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

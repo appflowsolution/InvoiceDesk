@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Client Management Directory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0f0fbd",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 lg:px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">BillingPro</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-md hidden md:block">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full">
+<div class="text-slate-500 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-xl" data-icon="search">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 h-full placeholder:text-slate-500 px-4 rounded-r-xl text-base font-normal" placeholder="Search clients..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal transition-opacity hover:opacity-90">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>New Client</span>
+</button>
+<div class="h-10 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700" data-alt="User profile avatar showing a professional man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDOFiV6UbUPSySJRf4pOS7SHJHay5veXkkiSCh2-qnWLhXWNXK9M612xKZh8zUCYEKrm8Vxul9f413ZA1IZPxmjlnTcpsEHX3bnQMpwKoTqDkTRcaDbv2tyHl4egi8Um-sMA-kUHk-HUqBo8eBbfnpAne_2XoMkh9E8_hrxc3pz5kIYbt4rS6I7BqpLOsJ_pva_Tq7vqu8CDxMh3iCNhnEK6ABiabZ3ie2HEy9Hw4AyaAAkQaSD4zrM5v6dsJpVmoWOJl6HuwU5_SCS");'></div>
+</div>
+</header>
+<main class="flex-1 px-6 lg:px-40 py-8">
+<div class="flex flex-col gap-6">
+<!-- Title Section -->
+<div class="flex flex-wrap justify-between items-end gap-3">
+<div class="flex flex-col gap-1">
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-black leading-tight tracking-tight">Clients</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal">Central directory of all your customer relationships and billing history.</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+                                Filter
+                            </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-lg">download</span>
+                                Export
+                            </button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="@container">
+<div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+<th class="px-6 py-4 text-slate-900 dark:text-slate-100 text-xs font-semibold uppercase tracking-wider">Client Name</th>
+<th class="px-6 py-4 text-slate-900 dark:text-slate-100 text-xs font-semibold uppercase tracking-wider">Email Address</th>
+<th class="px-6 py-4 text-slate-900 dark:text-slate-100 text-xs font-semibold uppercase tracking-wider">Projects</th>
+<th class="px-6 py-4 text-slate-900 dark:text-slate-100 text-xs font-semibold uppercase tracking-wider">Total Billed</th>
+<th class="px-6 py-4 text-slate-900 dark:text-slate-100 text-xs font-semibold uppercase tracking-wider text-center">Status</th>
+<th class="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary font-bold overflow-hidden">
+<img alt="" class="w-full h-full object-cover" data-alt="Portrait of John Doe, client" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI9LwTzczIrZsy4kfKQQhr-ZJ-LjLVY8WGJ2-3PK7PRxdDDQ468a6pFwDWIwIN7rIF9QHXY4diVuiNUE8lTD6G_CciZMRdXrp65MXlgFdhOVNgYKnR_QUB3Ca6Ntvub268-N5eMXOfeYuJVic6KwmqZ9aaU6Y7RMQLeO1XFoSnByfspuaXJ3sjg4O4Pd3v83G7Q4GBv43Gr1zdhmUcUjUHsF-ddpr3lpPmw1n4pEaASbxSRD6UiLIWkBF7_HycmtGYqY4LGEExC1Yh"/>
+</div>
+<span class="font-semibold text-slate-900 dark:text-slate-100">John Doe</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">john.doe@example.com</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">4 Projects</td>
+<td class="px-6 py-4 text-slate-900 dark:text-slate-100 font-medium">$1,200.00</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+                                                    Active
+                                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors" title="Edit">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary font-bold overflow-hidden">
+<img alt="" class="w-full h-full object-cover" data-alt="Portrait of Alice Smith, client" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8fOypODVbdS7o9dGGCOIuvjY4cdL92MqRezZLMLwdoF1nxXMZX971m3gyKet9PeLlFK5ahbi6MBfrkE3jIQ62V-g-kj5zMfEGgkOOZRC-4CCAFSbpA01YobbhC7XST_IDCusBkA5UdWg0kSnDYtDLmulZV8RmkI3bp9vfEpzxlow956cBr3NqP244Kn1oVlcLQO6DdUV_tGRWExKaz6RGeWaFVJ3i7lLAnf9givPZBEmg5aOk_VBHqh4iQyiKrNdaD4wfWcAwiECk"/>
+</div>
+<span class="font-semibold text-slate-900 dark:text-slate-100">Alice Smith</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">alice@design.co</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">12 Projects</td>
+<td class="px-6 py-4 text-slate-900 dark:text-slate-100 font-medium">$8,500.00</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+                                                    Active
+                                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors" title="Edit">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                                        GT
+                                                    </div>
+<span class="font-semibold text-slate-900 dark:text-slate-100">Global Tech</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">billing@globaltech.com</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">2 Projects</td>
+<td class="px-6 py-4 text-slate-900 dark:text-slate-100 font-medium">$450.00</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 ring-1 ring-inset ring-slate-500/10">
+                                                    Inactive
+                                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors" title="Edit">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary font-bold overflow-hidden">
+<img alt="" class="w-full h-full object-cover" data-alt="Portrait of Sarah Jenkins, client" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8U-Ay7GnsSp73KSGrUgmlXrrQa9T25QrRyPttKc06_AC75uRar9RG2Uo9K3co7XguKRU7t_l1kOTcRzKk2Bnm8GBtAOTv9L3ry6LmEJHAvJuSnghmxZsV2h1WdUQ0zNpxIGXbAbEzVRtYyVL51nNBXvTd8f155WFqIrwEMFfoJKqiotkyqfqkj3pgdRiP2UiZLr6r1uDwQ7RqCX7DBliaN6JSK-HRIvmw1s141zXbj6xbgdcIa-5X6_mtHwIoHMveqymta9kvEb5h"/>
+</div>
+<span class="font-semibold text-slate-900 dark:text-slate-100">Sarah Jenkins</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">sarah.j@freelance.com</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">7 Projects</td>
+<td class="px-6 py-4 text-slate-900 dark:text-slate-100 font-medium">$3,100.00</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+                                                    Active
+                                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors" title="Edit">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary font-bold overflow-hidden">
+<img alt="" class="w-full h-full object-cover" data-alt="Portrait of Mark Wilson, client" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgSdMEW4khPzOuS4kRoVvH71Sl_2Ap5vg5VoFXaURryOdR6_PcgYuTVq63vYwLXUhJ4la9DTSaOp_33VczKB0arEZYb1k3-GBzG-GdM2aujhgI_Z2TP-fd1uJeYAb25PuK2LvwpAdv9jGl7zVW3LcrxfoM61JLXuMPjaBvCs-DVy8YWkJvDkg1shNDsng9L0XFljgYIa6pjChYroXdHe6t-nCg4UK5ZqD9a0EDZPofC6i-V6fY80KK65tR6DZfu8yPdx66CbuC8opE"/>
+</div>
+<span class="font-semibold text-slate-900 dark:text-slate-100">Mark Wilson</span>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">mark@startup.io</td>
+<td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">1 Project</td>
+<td class="px-6 py-4 text-slate-900 dark:text-slate-100 font-medium">$0.00</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20">
+                                                    Active
+                                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors" title="Edit">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50 dark:bg-slate-800/50">
+<p class="text-sm text-slate-500 dark:text-slate-400">
+                                    Showing <span class="font-medium text-slate-900 dark:text-slate-100">1</span> to <span class="font-medium text-slate-900 dark:text-slate-100">5</span> of <span class="font-medium text-slate-900 dark:text-slate-100">42</span> results
+                                </p>
+<div class="flex items-center gap-1">
+<a class="flex size-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700" href="#">
+<span class="material-symbols-outlined text-xl">chevron_left</span>
+</a>
+<a class="text-sm font-bold flex size-9 items-center justify-center rounded-lg bg-primary text-white" href="#">1</a>
+<a class="text-sm font-medium flex size-9 items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" href="#">2</a>
+<a class="text-sm font-medium flex size-9 items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" href="#">3</a>
+<span class="px-2 text-slate-400">...</span>
+<a class="text-sm font-medium flex size-9 items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" href="#">8</a>
+<a class="flex size-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700" href="#">
+<span class="material-symbols-outlined text-xl">chevron_right</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
