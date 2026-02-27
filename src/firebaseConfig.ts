@@ -4,12 +4,12 @@ import { getAuth } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCgKlE1X_P6Z1kj9sQ5qdxHLipkJM6safo",
-    authDomain: "invoicedesk-f3c36.firebaseapp.com",
-    projectId: "invoicedesk-f3c36",
-    storageBucket: "invoicedesk-f3c36.firebasestorage.app",
-    messagingSenderId: "976796805984",
-    appId: "1:976796805984:web:34da9811d0c858f29a4c05"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
