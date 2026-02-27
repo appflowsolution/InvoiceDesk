@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Auditoría de Seguridad - InvoiceDesk</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 font-sans p-8">
     <div class="max-w-4xl mx-auto">
         <header class="mb-8 flex justify-between items-center">
@@ -13,21 +15,21 @@
                 <h1 class="text-3xl font-bold text-gray-800">Security Audit Report</h1>
                 <p class="text-gray-500">Proyecto: InvoiceDesk | Auditor: Antigravity AI</p>
             </div>
-            <div class="px-4 py-2 bg-red-100 text-red-700 rounded-full font-bold">
-                RIESGO TOTAL: ALTO
+            <div class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full font-bold">
+                RIESGO TOTAL: MEDIO
             </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
+            <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
                 <span class="text-sm text-gray-500">Credenciales</span>
-                <p class="text-xl font-bold text-gray-800 uppercase">Medio</p>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-                <span class="text-sm text-gray-500">Firebase DB</span>
-                <p class="text-xl font-bold text-gray-800 uppercase">Crítico</p>
+                <p class="text-xl font-bold text-gray-800 uppercase">Resuelto</p>
             </div>
             <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
+                <span class="text-sm text-gray-500">Firebase DB</span>
+                <p class="text-xl font-bold text-gray-800 uppercase">Resuelto</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
                 <span class="text-sm text-gray-500">Arquitectura</span>
                 <p class="text-xl font-bold text-gray-800 uppercase">OK</p>
             </div>
@@ -35,35 +37,44 @@
 
         <section class="bg-white rounded-lg shadow p-6 border border-gray-200">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Vulnerabilidades Detectadas</h2>
-            
+
             <div class="space-y-6">
                 <!-- VULN 1 -->
                 <div class="pb-6 border-b border-gray-100">
                     <div class="flex items-center mb-2">
-                        <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">MEDIO</span>
+                        <span
+                            class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">MEDIO</span>
                         <h3 class="font-bold text-slate-800">Credenciales Hardcodeadas en el Frontend</h3>
                     </div>
-                    <p class="text-gray-600 text-sm mb-2">Las claves API de Firebase están expuestas en <code>src/firebaseConfig.ts</code>.</p>
-                    <p class="text-gray-500 text-xs">Recomendación: Mover a variables de entorno .env y restringir por dominio en la consola.</p>
+                    <p class="text-gray-600 text-sm mb-2">Las claves API de Firebase están expuestas en
+                        <code>src/firebaseConfig.ts</code>.
+                    </p>
+                    <p class="text-gray-500 text-xs">Recomendación: Mover a variables de entorno .env y restringir por
+                        dominio en la consola.</p>
                 </div>
 
                 <!-- VULN 2 -->
                 <div class="pb-6 border-b border-gray-100">
                     <div class="flex items-center mb-2">
-                        <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">CRÍTICO</span>
+                        <span
+                            class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">CRÍTICO</span>
                         <h3 class="font-bold text-slate-800">Ausencia de Reglas de Seguridad (Rules)</h3>
                     </div>
-                    <p class="text-gray-600 text-sm mb-2">No se han detectado archivos de configuración de reglas locales (Firestore/Storage).</p>
-                    <p class="text-gray-500 text-xs">Recomendación: Definir reglas locales y sincronizar con Firebase CLI.</p>
+                    <p class="text-gray-600 text-sm mb-2">No se han detectado archivos de configuración de reglas
+                        locales (Firestore/Storage).</p>
+                    <p class="text-gray-500 text-xs">Recomendación: Definir reglas locales y sincronizar con Firebase
+                        CLI.</p>
                 </div>
 
                 <!-- INFO -->
                 <div>
                     <div class="flex items-center mb-2">
-                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">INFO</span>
+                        <span
+                            class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded mr-2">INFO</span>
                         <h3 class="font-bold text-slate-800">Arquitectura y Autenticación</h3>
                     </div>
-                    <p class="text-gray-600 text-sm mb-2">El flujo de autenticación y protección de rutas es correcto para una SPA.</p>
+                    <p class="text-gray-600 text-sm mb-2">El flujo de autenticación y protección de rutas es correcto
+                        para una SPA.</p>
                 </div>
             </div>
         </section>
@@ -73,4 +84,5 @@
         </footer>
     </div>
 </body>
+
 </html>
