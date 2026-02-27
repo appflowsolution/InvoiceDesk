@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import html2pdf from 'html2pdf.js';
 import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import ServiceTable, { type ServiceItem } from './ServiceTable';
-import { PrintableInvoice, type InvoiceData, type IssuerProfile } from './InvoiceView';
-import { X, ArrowLeft } from 'lucide-react';
+import { PrintableInvoice, type IssuerProfile } from './InvoiceView';
+import { X, ArrowLeft, Download } from 'lucide-react';
 
 const InvoiceForm: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -27,6 +28,21 @@ const InvoiceForm: React.FC = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+
+    const handleDownloadPDF = () => {
+        const element = document.getElementById('printable-invoice');
+        if (!element) return;
+
+        const opt: any = {
+            margin: [10, 10, 10, 10],
+            filename: `${invoiceId || 'invoice'}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    };
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [issuer, setIssuer] = useState<IssuerProfile>({
@@ -374,12 +390,20 @@ const InvoiceForm: React.FC = () => {
                                 <h3 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
                                     Invoice Preview
                                 </h3>
-                                <button
-                                    onClick={() => setShowPreview(false)}
-                                    className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors focus:outline-none"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={handleDownloadPDF}
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        <Download className="w-4 h-4" /> Download PDF
+                                    </button>
+                                    <button
+                                        onClick={() => setShowPreview(false)}
+                                        className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors focus:outline-none"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
                             {/* Modal Body */}
                             <div className="p-8 overflow-y-auto grow">

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import html2pdf from 'html2pdf.js';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { ChevronLeft, Printer, Download, FileText } from 'lucide-react';
+import { ChevronLeft, Printer, Download } from 'lucide-react';
 import type { ServiceItem } from './ServiceTable';
 
 export interface InvoiceData {
@@ -31,13 +32,12 @@ export interface IssuerProfile {
 
 export const PrintableInvoice: React.FC<{ invoice: InvoiceData, issuer: IssuerProfile }> = ({ invoice, issuer }) => {
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-10 print:shadow-none print:border-none print:p-0 print:w-full print:max-w-none print:block print-top-margin">
+        <div id="printable-invoice" className="bg-white rounded-xl shadow-sm border border-slate-200 p-10 print:shadow-none print:border-none print:p-0 print:w-full print:max-w-none print:block print-top-margin">
             {/* Invoice Header */}
             <div className="flex justify-between items-start mb-8 border-b border-slate-100 pb-6 print:mb-6 print:pb-4">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-2">INVOICE</h1>
                     <p className="text-slate-500 font-medium">{invoice.invoiceId}</p>
-
                 </div>
 
                 <div className="text-right">
@@ -179,7 +179,6 @@ const InvoiceView: React.FC = () => {
         return (
             <div className="flex-1 bg-slate-50 min-h-screen p-8 lg:pl-80 flex items-center justify-center">
                 <div className="text-slate-500 animate-pulse flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
                     Loading invoice...
                 </div>
             </div>
@@ -202,6 +201,21 @@ const InvoiceView: React.FC = () => {
         window.print();
     };
 
+    const handleDownloadPDF = () => {
+        const element = document.getElementById('printable-invoice');
+        if (!element) return;
+
+        const opt: any = {
+            margin: [10, 10, 10, 10],
+            filename: `${id || 'invoice'}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    };
+
     return (
         <div className="flex-1 bg-slate-50 min-h-screen p-8 lg:pl-80">
             <div className="max-w-5xl mx-auto">
@@ -222,7 +236,7 @@ const InvoiceView: React.FC = () => {
                             <Printer className="w-4 h-4" /> Print
                         </button>
                         <button
-                            onClick={() => alert('PDF Download not implemented yet.')}
+                            onClick={handleDownloadPDF}
                             className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors shadow-sm"
                         >
                             <Download className="w-4 h-4" /> Download PDF
