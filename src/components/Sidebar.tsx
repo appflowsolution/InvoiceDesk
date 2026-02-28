@@ -3,14 +3,21 @@ import { LayoutDashboard, FileText, Users, FolderKanban, Settings, LogOut } from
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+import logoUrl from '../assets/logo.png';
+
 const Sidebar: React.FC = () => {
     const { user, logout } = useAuth();
 
     return (
         <div className="w-64 bg-slate-900 h-screen text-slate-300 flex flex-col justify-between fixed top-0 left-0 print:hidden">
             <div>
-                <div className="p-6">
-                    <h1 className="text-white text-2xl font-black tracking-tight italic">Invoice<span className="text-blue-500">Desk</span></h1>
+                <div className="p-4 flex items-center justify-center">
+                    <img
+                        src={logoUrl}
+                        alt="InvoiceDesk Logo"
+                        className="h-28 w-auto object-contain scale-[1.3]"
+                        style={{ filter: 'invert(1) brightness(1.5)', mixBlendMode: 'screen' }}
+                    />
                 </div>
                 <nav className="mt-6">
                     <NavLink to="/overview" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>

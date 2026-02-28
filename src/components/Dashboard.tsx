@@ -8,8 +8,6 @@ import {
     ArrowDownRight,
     TrendingUp,
     Clock,
-    Plus,
-    Download,
     CheckCircle2,
     Send,
     UserPlus,
@@ -200,14 +198,6 @@ const Dashboard: React.FC = () => {
                         <h1 className="text-slate-900 text-4xl font-black leading-tight tracking-tight">Dashboard</h1>
                     </div>
                     <p className="text-slate-500 text-base font-normal">Welcome back. Here's your financial performance at a glance.</p>
-                </div>
-                <div className="flex gap-3">
-                    <button className="flex items-center justify-center rounded-xl h-12 px-6 bg-white border border-slate-200 text-slate-900 font-bold text-sm hover:bg-slate-50 transition-colors">
-                        <Download className="w-4 h-4 mr-2" /> Export Report
-                    </button>
-                    <Link to="/invoices/new" className="flex items-center justify-center rounded-xl h-12 px-6 bg-blue-600 text-white font-bold text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
-                        <Plus className="w-4 h-4 mr-2" /> Create Invoice
-                    </Link>
                 </div>
             </div>
 
