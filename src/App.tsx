@@ -8,6 +8,7 @@ import Clients from './components/Clients';
 import Projects from './components/Projects';
 import Settings from './components/Settings';
 import Login from './components/Login';
+import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
                 <div className="flex min-h-screen bg-slate-50 font-sans">
                   <Sidebar />
                   <Routes>
+                    <Route path="/overview" element={<Dashboard />} />
                     <Route path="/invoices" element={<InvoicesList />} />
                     <Route path="/invoices/new" element={<InvoiceForm />} />
                     <Route path="/invoices/edit/:id" element={<InvoiceForm />} />
@@ -30,7 +32,8 @@ function App() {
                     <Route path="/clients" element={<Clients />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/settings" element={<Settings />} />
-                    <Route path="*" element={<Navigate to="/invoices" replace />} />
+                    <Route path="/" element={<Navigate to="/overview" replace />} />
+                    <Route path="*" element={<Navigate to="/overview" replace />} />
                   </Routes>
                 </div>
               </ProtectedRoute>

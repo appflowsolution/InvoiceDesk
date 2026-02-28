@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Building2, Mail, Phone, MapPin, Globe, CheckCircle2, Settings as SettingsIcon, Plus, Trash2, Edit2, X } from 'lucide-react';
-import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, getDoc, getDocs } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 
 interface IssuerProfile {
     id: string;
@@ -34,14 +34,17 @@ const Settings: React.FC = () => {
 
     useEffect(() => {
         const checkMigration = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
             const oldProfileDoc = await getDoc(doc(db, 'settings', 'profile'));
             if (oldProfileDoc.exists()) {
                 const data = oldProfileDoc.data();
                 // Check if already migrated
-                const companiesSnap = await getDocs(collection(db, 'companies'));
+                const companiesSnap = await getDocs(query(collection(db, 'companies'), where('userId', '==', user.uid)));
                 if (companiesSnap.empty) {
                     await addDoc(collection(db, 'companies'), {
                         ...data,
+                        userId: user.uid,
                         createdAt: new Date().toISOString(),
                         isDefault: true
                     });
@@ -52,7 +55,11 @@ const Settings: React.FC = () => {
 
         checkMigration();
 
-        const unsubscribe = onSnapshot(collection(db, 'companies'), (snapshot) => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const q = query(collection(db, 'companies'), where('userId', '==', user.uid));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const companyData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -108,8 +115,11 @@ const Settings: React.FC = () => {
                     updatedAt: new Date().toISOString()
                 });
             } else {
+                const user = auth.currentUser;
+                if (!user) throw new Error("No authenticated user");
                 await addDoc(collection(db, 'companies'), {
                     ...formData,
+                    userId: user.uid,
                     createdAt: new Date().toISOString()
                 });
             }

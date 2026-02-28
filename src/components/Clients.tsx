@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Filter, Download, Edit2, Trash2, ChevronLeft, ChevronRight, X, Users } from 'lucide-react';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 
 interface Client {
     id: string;
@@ -54,7 +54,10 @@ const Clients: React.FC = () => {
     const paginatedClients = sortedClients.slice(startIndex, startIndex + itemsPerPage);
 
     useEffect(() => {
-        const unsubscribeClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const unsubscribeClients = onSnapshot(query(collection(db, 'clients'), where('userId', '==', user.uid)), (snapshot) => {
             const clientsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -62,7 +65,7 @@ const Clients: React.FC = () => {
             setClients(clientsData);
         });
 
-        const unsubscribeInvoices = onSnapshot(collection(db, 'invoices'), (snapshot) => {
+        const unsubscribeInvoices = onSnapshot(query(collection(db, 'invoices'), where('userId', '==', user.uid)), (snapshot) => {
             const invoicesData = snapshot.docs.map(doc => doc.data());
             setInvoices(invoicesData);
         });
@@ -131,6 +134,9 @@ const Clients: React.FC = () => {
                 });
             } else {
                 // Add
+                const user = auth.currentUser;
+                if (!user) throw new Error("No authenticated user");
+
                 await addDoc(collection(db, 'clients'), {
                     name: formData.name,
                     contact: formData.contact,
@@ -141,7 +147,8 @@ const Clients: React.FC = () => {
                     projects: 0,
                     totalBilled: 0,
                     initials: getInitials(formData.name),
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    userId: user.uid
                 });
             }
             setIsModalOpen(false);

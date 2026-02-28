@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, FileText, Users, FolderKanban, BarChart3, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, FolderKanban, Settings, LogOut } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,12 +10,12 @@ const Sidebar: React.FC = () => {
         <div className="w-64 bg-slate-900 h-screen text-slate-300 flex flex-col justify-between fixed top-0 left-0 print:hidden">
             <div>
                 <div className="p-6">
-                    <h1 className="text-white text-2xl font-bold tracking-tight">InvoiceDesk</h1>
+                    <h1 className="text-white text-2xl font-black tracking-tight italic">Invoice<span className="text-blue-500">Desk</span></h1>
                 </div>
                 <nav className="mt-6">
                     <NavLink to="/overview" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>
                         <LayoutDashboard className="w-5 h-5 mr-3" />
-                        <span className="font-medium">Overview</span>
+                        <span className="font-medium">Dashboard</span>
                     </NavLink>
                     <NavLink to="/invoices" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>
                         <FileText className="w-5 h-5 mr-3" />
@@ -28,10 +28,6 @@ const Sidebar: React.FC = () => {
                     <NavLink to="/projects" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>
                         <FolderKanban className="w-5 h-5 mr-3" />
                         <span className="font-medium">Projects</span>
-                    </NavLink>
-                    <NavLink to="/reports" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>
-                        <BarChart3 className="w-5 h-5 mr-3" />
-                        <span className="font-medium">Reports</span>
                     </NavLink>
                     <NavLink to="/settings" className={({ isActive }) => `flex items-center px-6 py-3 transition-colors ${isActive ? 'bg-blue-900/40 text-blue-400 border-r-4 border-blue-500 hover:bg-slate-800' : 'hover:bg-slate-800'}`}>
                         <Settings className="w-5 h-5 mr-3" />

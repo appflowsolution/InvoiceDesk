@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, Printer, Download, DollarSign, Calendar, CreditCard, X, Trash2, History, Edit2, AlertCircle, CheckCircle2, HelpCircle } from 'lucide-react';
-import { doc, getDoc, onSnapshot, updateDoc, collection } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { doc, getDoc, onSnapshot, updateDoc, collection, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 import type { ServiceItem } from './ServiceTable';
 
 export interface Payment {
@@ -208,7 +208,7 @@ const InvoiceView: React.FC = () => {
             }
         };
 
-        const unsubscribeCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
+        const unsubscribeCompanies = onSnapshot(query(collection(db, 'companies'), where('userId', '==', auth.currentUser?.uid || '')), (snapshot) => {
             if (!snapshot.empty) {
                 const comps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as IssuerProfile[];
                 const defaultComp = comps.find(c => c.isDefault) || comps[0];

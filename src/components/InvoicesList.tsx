@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Filter, Download, Trash2, Edit2, ChevronLeft, ChevronRight, Eye, FileText, CheckCircle2, Clock, X } from 'lucide-react';
-import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { collection, onSnapshot, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 import { Link } from 'react-router-dom';
 
 interface Invoice {
@@ -92,7 +92,9 @@ const InvoicesList: React.FC = () => {
     }, { totalInvoiced: 0, totalPaid: 0, totalPending: 0 });
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(collection(db, 'invoices'), (snapshot) => {
+        const user = auth.currentUser;
+        if (!user) return;
+        const unsubscribe = onSnapshot(query(collection(db, 'invoices'), where('userId', '==', user.uid)), (snapshot) => {
             const invoicesData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()

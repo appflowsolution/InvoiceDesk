@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Filter, Download, Edit2, Trash2, ChevronLeft, ChevronRight, X, FolderKanban } from 'lucide-react';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 
 interface Project {
     id: string;
@@ -37,8 +37,11 @@ const Projects: React.FC = () => {
     const paginatedProjects = sortedProjects.slice(startIndex, startIndex + itemsPerPage);
 
     useEffect(() => {
+        const user = auth.currentUser;
+        if (!user) return;
+
         // Fetch Projects real-time
-        const unsubscribeProjects = onSnapshot(collection(db, 'projects'), (snapshot) => {
+        const unsubscribeProjects = onSnapshot(query(collection(db, 'projects'), where('userId', '==', user.uid)), (snapshot) => {
             const projectsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -47,7 +50,7 @@ const Projects: React.FC = () => {
         });
 
         // Fetch Clients for the dropdown
-        const unsubscribeClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
+        const unsubscribeClients = onSnapshot(query(collection(db, 'clients'), where('userId', '==', user.uid)), (snapshot) => {
             const clientsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 name: doc.data().name
@@ -115,12 +118,16 @@ const Projects: React.FC = () => {
                 });
             } else {
                 // Add
+                const user = auth.currentUser;
+                if (!user) throw new Error("No authenticated user");
+
                 await addDoc(collection(db, 'projects'), {
                     name: formData.name,
                     description: formData.description,
                     clientName: formData.clientName,
                     status: formData.status,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    userId: user.uid
                 });
             }
             setIsModalOpen(false);

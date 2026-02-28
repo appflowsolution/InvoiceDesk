@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
-import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import ServiceTable, { type ServiceItem } from './ServiceTable';
 import { PrintableInvoice, type IssuerProfile } from './InvoiceView';
 import { X, ArrowLeft, Download } from 'lucide-react';
@@ -59,6 +59,9 @@ const InvoiceForm: React.FC = () => {
     });
 
     useEffect(() => {
+        const user = auth.currentUser;
+        if (!user) return;
+
         if (!id) {
             // Generate random Invoice ID like INV-#2023-0842
             const year = new Date().getFullYear();
@@ -114,7 +117,7 @@ const InvoiceForm: React.FC = () => {
         }
 
         // Fetch projects and clients
-        const unsubProjects = onSnapshot(collection(db, 'projects'), (snapshot) => {
+        const unsubProjects = onSnapshot(query(collection(db, 'projects'), where('userId', '==', user.uid)), (snapshot) => {
             setProjects(snapshot.docs.map(doc => ({
                 id: doc.id,
                 name: doc.data().name,
@@ -122,11 +125,11 @@ const InvoiceForm: React.FC = () => {
             })));
         });
 
-        const unsubClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
+        const unsubClients = onSnapshot(query(collection(db, 'clients'), where('userId', '==', user.uid)), (snapshot) => {
             setClients(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         });
 
-        const unsubCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
+        const unsubCompanies = onSnapshot(query(collection(db, 'companies'), where('userId', '==', user.uid)), (snapshot) => {
             const comps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as IssuerProfile[];
             setCompanies(comps);
 
@@ -219,7 +222,10 @@ const InvoiceForm: React.FC = () => {
                 setSuccess(`Invoice successfully updated!`);
                 setTimeout(() => navigate('/invoices'), 1500);
             } else {
-                await addDoc(collection(db, 'invoices'), { ...invoiceData, createdAt: new Date().toISOString() });
+                const user = auth.currentUser;
+                if (!user) throw new Error("No authenticated user");
+
+                await addDoc(collection(db, 'invoices'), { ...invoiceData, createdAt: new Date().toISOString(), userId: user.uid });
                 setSuccess(`Invoice successfully ${status === 'Draft' ? 'saved as draft' : 'registered'}!`);
 
                 if (status === 'Registered') {
