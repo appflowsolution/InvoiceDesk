@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Building2, Mail, Phone, MapPin, Globe, CheckCircle2, Settings as SettingsIcon, Plus, Trash2, Edit2, X } from 'lucide-react';
-import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 
 interface IssuerProfile {
@@ -33,28 +33,6 @@ const Settings: React.FC = () => {
     });
 
     useEffect(() => {
-        const checkMigration = async () => {
-            const user = auth.currentUser;
-            if (!user) return;
-            const oldProfileDoc = await getDoc(doc(db, 'settings', 'profile'));
-            if (oldProfileDoc.exists()) {
-                const data = oldProfileDoc.data();
-                // Check if already migrated
-                const companiesSnap = await getDocs(query(collection(db, 'companies'), where('userId', '==', user.uid)));
-                if (companiesSnap.empty) {
-                    await addDoc(collection(db, 'companies'), {
-                        ...data,
-                        userId: user.uid,
-                        createdAt: new Date().toISOString(),
-                        isDefault: true
-                    });
-                    // Optional: remove old doc or mark as migrated
-                }
-            }
-        };
-
-        checkMigration();
-
         const user = auth.currentUser;
         if (!user) return;
 
